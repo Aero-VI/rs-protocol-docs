@@ -2,6 +2,15 @@
 
 The RS 508 login process is a multi-stage handshake between client and server.
 
+## Connection Types
+
+Every connection to the main gateway server begins with a **single byte** identifying the connection type:
+
+| Value | Connection Type |
+|-------|----------------|
+| 14 | Login connection |
+| 15 | Update / JS5 / On-demand connection |
+
 ## Login Stages
 
 ### Stage 0: Initial Connection
@@ -26,39 +35,71 @@ The RS 508 login process is a multi-stage handshake between client and server.
 
 ### Stage 2: Login Packet
 
-**Client → Server:**
-- Packet size (2 bytes)
-- Client version (4 bytes) - Must be 508, 800, or 900
-- Low memory flag (1 byte)
-- Cache CRC values:
-  - 6 shorts (12 bytes total) - Various cache indices
-  - 24 bytes - Individual cache file versions
-- Junk string (variable)
-- 29 ints (116 bytes) - Unknown/junk values  
-- Display mode (1 byte)
-  - 10 = HD (High Detail)
-  - Other = SD (Standard Detail)
-- RSA block marker (1 byte) - Must be 10 or 64
-- Client session key (8 bytes)
-- Server session key (8 bytes) - Must match server's key
-- Username (8 bytes) - Encoded as long
-- Password (variable string)
+The client now constructs and sends the full login packet:
+
+#### RSA-Encrypted Block (inner)
+Written first, encrypted, then appended:
+
+| Order | Type | Description |
+|-------|------|-------------|
+| 1 | Byte | Magic number: `10` |
+| 2 | Long (8 bytes) | Client session key |
+| 3 | Long (8 bytes) | Server session key (echo) |
+| 4 | Long (8 bytes) | Username packed to 64-bit |
+| 5 | C-String | Password (NUL-terminated) |
+
+#### Outer Login Packet
+| Order | Type | Description |
+|-------|------|-------------|
+| 1 | Byte | Login type opcode (16 = normal, 18 = reconnect) |
+| 2 | Short | Total packet size |
+| 3 | Int | Client revision (508) |
+| 4 | Byte | Unknown (always 0, possibly low/high mem flag) |
+| 5 | Byte | Unknown (always 0) |
+| 6 | Byte | Unknown (always 0) |
+| 7 | Short | Applet width (pixels) |
+| 8 | Short | Applet height (pixels) |
+| 9 | Byte | UID (unique identifier) |
+| 10 | C-String | Settings string (applet parameter) |
+| 11 | Int | Affiliate identifier |
+| 12 | Int | Unknown flags (22 bits used, various client flags) |
+| 13 | Int × 27 | Cache CRC32 checksums (27 reference table indices for 508) |
+| 14 | Bytes | RSA-encrypted login block (appended at end) |
+
+### Stage 3: ISAAC Seeding
+After login data is sent:
+1. ISAAC ciphers are seeded from the session keys
+2. **Important**: Each int of the 4-int session key array has `50` added to it before seeding the ISAAC cipher used for packet opcode masking
+3. The client re-reads a **status code** from the server
 
 **Server → Client:**
-- Return code (1 byte)
-  - 2 = Success
-  - 3 = Invalid username/password
-  - 4 = Account banned
-  - 5 = Already logged in
-  - 7 = World full
-  - 9 = Login server offline
-  - Other = Could not complete login
-- Player rights (1 byte)
+- Return code (1 byte) - See table below
+- Player rights (1 byte) - if successful
   - 0 = Normal player
   - 1 = Player moderator
   - 2 = Administrator
 - Flagged (1 byte) - 0 or 1
 - Player index (2 bytes) - if successful
+
+### Login Response Codes
+| Code | Meaning |
+|------|---------|
+| 0 | Exchange session keys (initial handshake) |
+| 1 | Wait, retry in ~2 seconds |
+| 2 | Login successful |
+| 3 | Invalid username or password |
+| 4 | Account banned |
+| 5 | Account already logged in |
+| 6 | Client updated / version mismatch |
+| 7 | World full |
+| 8 | Login server offline |
+| 9 | Login limit exceeded |
+| 10 | Bad session ID |
+| 11 | Login server rejected session |
+| 12 | Members-only world |
+| 13 | Could not complete login |
+| 14 | Server being updated |
+| 15-24 | Various additional error states |
 
 ## Login Process Flow
 
