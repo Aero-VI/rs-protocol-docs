@@ -201,8 +201,82 @@ Structure:
   [3..n] Encrypted text (variable)
 ```
 
+## Detailed Packet Structures
+
+### Walking Packets (Opcodes 49, 119, 138)
+
+All walking packets use variable size (-1) and contain waypoint data:
+
+```
+Structure:
+[Opcode: 1 byte] [Size: 1 byte] [Payload: size bytes]
+
+Payload Format:
+[Number of waypoints: 1 byte] [Run flag: 1 byte] [Waypoints: variable]
+
+Each waypoint:
+[Delta X: 1 byte signed] [Delta Y: 1 byte signed]
+```
+
+**Walk Types:**
+- **Opcode 49**: Main map walking (map click)
+- **Opcode 119**: Minimap walking (minimap click)  
+- **Opcode 138**: Other walking (object interaction, ground item pickup)
+
+**Run Flag:**
+- 0 = Walk normally
+- 1 = Run (CTRL held or run enabled)
+
+### Interface Button Packets
+
+Multiple opcodes handle interface interactions:
+
+| Opcode | Handler | Usage |
+|--------|---------|-------|
+| 21 | ActionButtons.java | Primary button clicks |
+| 113 | InterfaceButton2.java | Secondary actions |
+| 169 | InterfaceButton4.java | Fourth option |
+| 232 | InterfaceButton5.java | Fifth option |
+| 233 | InterfaceButton1.java | Alternative primary |
+
+**Structure (6 bytes fixed):**
+```
+[Interface Hash: 4 bytes] [Child ID: 2 bytes]
+Interface Hash = (parentId << 16) | childId
+```
+
+### Player Interaction Packets
+
+**Structure (2 bytes fixed):**
+```
+[Player Index: 2 bytes]
+```
+
+**Opcodes:**
+- 160: First option (usually Attack)
+- 37: Second option (usually Follow/Trade)
+- 227: Third option
+- 253: Fourth option / accept trade
+
+### Item Action Packets
+
+**Structure (8 bytes fixed):**
+```
+[Interface Hash: 4 bytes] [Slot: 2 bytes] [Item ID: 2 bytes]
+```
+
+**Common Item Actions:**
+- 3: Equip item
+- 203: First item option (usually "Use")
+- 220: Eat/drink consumables
+- 186: Operate (fifth option)
+- 211: Drop item
+
 ## Notes
 
 - Packet sizes of -3 indicate undocumented or unused packets
 - Variable size packets (-1) send their size as the first byte after the opcode
 - Some packets have multiple handlers for the same opcode (e.g., buttons)
+- Interface hash calculation: `(parentId << 16) | childId`
+- Player indices are typically 1-2047 range
+- Item IDs are cache-dependent but follow consistent patterns
