@@ -24,11 +24,19 @@ Communication consists of three phases:
 - [`packet-structures.md`](packet-structures.md) - Detailed byte-level packet structures and data types
 
 ### Advanced Topics
-- [`player-updating.md`](player-updating.md) - Player movement and update system
-- [`interface-system.md`](interface-system.md) - Interface hashes, window panes, and CS2 scripts
-- [`map-region-packet.md`](map-region-packet.md) - Map loading and XTEA encryption
+- [`player-updating.md`](player-updating.md) - Player movement and update system with bit-level format
+- [`interface-system.md`](interface-system.md) - Interface hashes, window panes, and sidebar tabs
+- [`map-region-packet.md`](map-region-packet.md) - Map loading and XTEA encryption keys
 - [`obfuscation-patterns.md`](obfuscation-patterns.md) - Client obfuscation and deobfuscation techniques
-- [`constants.md`](constants.md) - Important protocol constants and values
+- [`constants.md`](constants.md) - Important protocol constants and interface IDs
+
+### Client-Side Systems  
+- [`configs-and-varbits.md`](configs-and-varbits.md) - Client configuration system and bit-packed variables
+- [`cs2-client-scripts.md`](cs2-client-scripts.md) - CS2 client script system and parameter formats
+- [`access-masks.md`](access-masks.md) - Interface permissions and interaction control
+
+### Implementation Reference
+- [`framework-reference.md`](framework-reference.md) - RS2HD and other framework implementation details
 
 ## Packet Structure
 

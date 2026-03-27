@@ -1,24 +1,61 @@
-# Map Region Packet
+# Map Region Packet (Opcode 142)
 
-The map region packet (opcode 142, VAR_SHORT) loads a new map region and provides XTEA keys for decrypting map data.
+The map region packet (opcode 142, VAR_SHORT) loads a new map region and provides XTEA keys for decrypting map data files from the cache.
 
-## Packet Structure
+## Detailed Packet Structure
+
+```java
+// Packet header
+createFrameVarSizeWord(142);  // VAR_SHORT packet
+
+// Player position within the new region
+writeShortA(mapRegionX);           // Region X coordinate (with ByteA modifier)
+writeShortBigEndianA(currentY);    // Player's Y within region (big-endian + ByteA)  
+writeShortA(currentX);             // Player's X within region (with ByteA modifier)
+
+// XTEA keys for all regions in 13×13 grid
+for (int regionX = baseRegionX; regionX <= baseRegionX + 12; regionX++) {
+    for (int regionY = baseRegionY; regionY <= baseRegionY + 12; regionY++) {
+        int[] xteaKeys = getXTEAKeys(regionX, regionY);
+        
+        if (xteaKeys != null && !isBlacklisted(regionX, regionY)) {
+            writeInt(xteaKeys[0]);    // XTEA key 0
+            writeInt(xteaKeys[1]);    // XTEA key 1  
+            writeInt(xteaKeys[2]);    // XTEA key 2
+            writeInt(xteaKeys[3]);    // XTEA key 3
+        }
+        // Note: Blacklisted regions send no keys (client uses default/null)
+    }
+}
+
+// Final position data
+writeByteC(heightLevel);        // Current height plane (with ByteC modifier)
+writeShort(mapRegionY);         // Region Y coordinate (big-endian)
+
+endFrameVarSizeWord();  // Finalize VAR_SHORT packet
+```
+
+## Region Grid Layout
+
+The 13×13 region grid is centered on the player's current region:
 
 ```
-writeShortA(mapRegionX)       // Region X coordinate
-writeShortBigEndianA(currentY) // Player's Y within region
-writeShortA(currentX)          // Player's X within region
-
-// For each 8×8 chunk in the 13×13 region grid:
-//   If not in a blacklisted area:
-    writeInt(xteaKey[0])       // XTEA key 0 for this region
-    writeInt(xteaKey[1])       // XTEA key 1
-    writeInt(xteaKey[2])       // XTEA key 2
-    writeInt(xteaKey[3])       // XTEA key 3
-
-writeByteC(heightLevel)        // Current height plane
-writeShort(mapRegionY)         // Region Y coordinate
+[R-6][R-5][R-4][R-3][R-2][R-1][ R ][R+1][R+2][R+3][R+4][R+5][R+6]
+[  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ]
+[  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ]
+[  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ]
+[  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ]
+[  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ]
+[  ][  ][  ][  ][  ][  ][ P ][  ][  ][  ][  ][  ][  ]  ← Player position
+[  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ]
+[  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ]
+[  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ]
+[  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ]
+[  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ]
+[  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ][  ]
 ```
+
+**Total coverage**: 832×832 tiles (13×64 = 832)
 
 ## Region System
 

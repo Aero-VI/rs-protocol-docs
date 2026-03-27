@@ -12,6 +12,39 @@ Key protocol constants for RS 508 implementation.
 | Login connection type | 14 | Byte sent to initiate login |
 | Update connection type | 15 | Byte sent for JS5/cache updates |
 
+## Sidebar Tab Interface IDs (508)
+
+Complete mapping of sidebar tabs to interface IDs:
+
+| Tab Index | Interface ID | Description |
+|-----------|--------------|-------------|
+| 0 | 92 | Attack styles |
+| 1 | 320 | Skills |
+| 2 | 274 | Quests |
+| 3 | 149 | Inventory |
+| 4 | 387 | Equipment |
+| 5 | 271 | Prayer |
+| 6 | 192 | Magic spellbook |
+| 8 | 550 | Friends list |
+| 9 | 551 | Ignore list |
+| 10 | 589 | Clan chat |
+| 11 | 261 | Settings |
+| 12 | 464 | Emotes |
+| 13 | 187 | Music |
+| 14 | 182 | Logout |
+
+*Note: Tab index 7 is unused/reserved*
+
+## Orb Interface IDs (Resizable/HD, parent 746)
+
+| Child ID | Interface | Description |
+|----------|-----------|-------------|
+| 13 | 748 | HP orb |
+| 14 | 749 | Prayer orb |
+| 15 | 750 | Energy orb |
+| 16 | 747 | Summoning orb |
+| 18 | 751 | Settings / other |
+
 ## Login Constants
 
 | Constant | Value | Description |
