@@ -28,7 +28,6 @@ RS2HD Server Structure:
 ├── game/
 │   ├── content/        # Game content (quests, minigames)
 │   └── skills/         # Skill implementations
-└── Constants.java      # Protocol constants and packet sizes
 ```
 
 ### Key Classes
@@ -59,28 +58,8 @@ sendEquipment()
 ```
 
 #### PacketHandlers (Client→Server)
-Processes incoming packets from client:
+Processes incoming packets from client.
 
-```java
-// Movement handlers
-Walking.java              # Opcodes 49, 119, 138 (walking)
-  
-// Interface handlers  
-ActionButtons.java        # Opcode 21 (button clicks)
-InterfaceOptions.java     # Various interface interactions
-
-// Item handlers
-Equipment.java            # Opcode 3 (equipping items)
-ItemActions.java          # Item option handlers
-
-// Player interaction handlers
-PlayerOptions.java        # Player right-click options
-MagicOnPlayer.java       # Opcode 70 (spell casting)
-
-// Social handlers
-PublicChat.java          # Opcode 222 (chat messages)
-PrivateMessaging.java    # Friend/ignore system
-```
 
 ### Codec Implementation
 
